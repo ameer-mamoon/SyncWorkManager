@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import com.example.syncworkmanager.Retrofit.RetrofitInstance
 import com.example.syncworkmanager.db.Sync
 
-class SyncRepository(private val syncDao: SyncDao) {
+class Repository(private val syncDao: SyncDao) {
 
     val allSyncData: LiveData<List<Sync>> = syncDao.getAllSyncData()
 

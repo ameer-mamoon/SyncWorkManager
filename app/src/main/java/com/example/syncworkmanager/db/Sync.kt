@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "sync")
 class Sync (
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int,
     val requestedAt:String,
-    val updatedAt:String
+    val updatedAt:String?=null
 )

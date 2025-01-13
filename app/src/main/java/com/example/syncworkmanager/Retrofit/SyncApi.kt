@@ -6,5 +6,5 @@ import retrofit2.http.Path
 
 interface SyncApi {
     @POST("{id}")
-    suspend fun fetchSyncData(@Path("id")  id:Int): List<User> // Update the return type as per API response
+    suspend fun fetchSyncData(@Path("id") id:Int): List<User> // Update the return type as per API response
 }

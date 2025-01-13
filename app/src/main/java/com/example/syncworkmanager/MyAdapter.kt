@@ -8,7 +8,7 @@ import com.bumptech.glide.Glide
 import com.example.syncworkmanager.R
 import com.example.syncworkmanager.User
 
-class MyAdapter(private val itemList: List<User>) :
+class MyAdapter(private var itemList: MutableList<User>) :
     RecyclerView.Adapter<MyAdapter.ViewHolder>() {
 
     // ViewHolder class holds item views
@@ -54,4 +54,10 @@ class MyAdapter(private val itemList: List<User>) :
     override fun getItemCount(): Int {
         return itemList.size
     }
+
+    fun updateData(user:User) {
+        itemList.add(user)
+        notifyDataSetChanged()
+    }
+
 }
