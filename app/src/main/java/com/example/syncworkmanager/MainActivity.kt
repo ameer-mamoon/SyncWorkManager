@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         list = mutableListOf()
 
         val data = User(
-            1, "Item 2", "Item 3", "Item 4", "Item 5",
+            0, "Item 2", "Item ", "Item 4", "Item 5",
             "Item 6", "Item 7", "Item 8"
         )
         list!!.add(data)
@@ -108,7 +108,7 @@ class MainActivity : AppCompatActivity() {
 
 
         // Work Manager
-        scheduleFetchUserWork(applicationContext,recyclerView,1)
+        scheduleFetchUserWork(this,recyclerView,1)
 
     }
 }
@@ -119,7 +119,7 @@ fun scheduleFetchUserWork(context: Context,recyclerView: RecyclerView,id:Int) {
         .build()
 
     val workRequest: WorkRequest = OneTimeWorkRequestBuilder<BackgroundTask>()
-        .setInitialDelay(10, TimeUnit.SECONDS) // delay of 10 seconds
+        .setInitialDelay(5, TimeUnit.SECONDS) // delay of 5 seconds
         .setInputData(inputData)
         .build()
 
@@ -130,21 +130,26 @@ fun scheduleFetchUserWork(context: Context,recyclerView: RecyclerView,id:Int) {
         if (workInfo != null && workInfo.state == WorkInfo.State.SUCCEEDED) {
             val outputData = workInfo.outputData
             val usersJson = outputData.getString("usersJson")
+            val newId = outputData.getInt("id", 1)
 
-            if (usersJson != null) {
+            if (usersJson != null)
+            {
                 // Deserialize JSON back into a list of User objects
                 val userType = object : TypeToken<User>() {}.type
-                val users: List<User> = Gson().fromJson(usersJson, userType)
+                val user = Gson().fromJson(usersJson, User::class.java)
 
                 // Update the RecyclerView with the fetched user data
                 val adapter = recyclerView.adapter as MyAdapter
-                adapter.updateData(users[0])
+                adapter.updateData(user)
                 Log.d("Result: ","List updated")
 
-            val newId = id + 1
-            scheduleFetchUserWork(context,recyclerView,newId) // Schedule the next work with incremented id
+                if (newId <= 8) { // Continue only if the new ID is valid
+                    scheduleFetchUserWork(context, recyclerView, newId)
+                } else {
+                    Log.d("Result:", "No more users to fetch")
+                }
 
-        }
+            }
 
 
         }
