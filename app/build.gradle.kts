@@ -1,8 +1,8 @@
 
 plugins {
+    id("com.google.devtools.ksp")
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("com.google.devtools.ksp")
 }
 
 android {
@@ -61,11 +61,22 @@ dependencies {
 //    kapt("androidx.room:room-compiler:$room_version")
      ksp("androidx.room:room-compiler:$room_version")
 
+
+//    ksp(libs.room.compiler)
+
+//    annotationProcessor("androidx.room:room-compiler:$room_version")
+
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.4.0")
 
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0") // For JSON conversion
+
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+
+    // Kotlin + coroutines
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
 
 
 }

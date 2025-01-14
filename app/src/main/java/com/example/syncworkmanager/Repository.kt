@@ -12,7 +12,7 @@ class Repository(private val syncDao: SyncDao) {
         syncDao.insert(sync)
     }
 
-    suspend fun fetchDataFromApi(id:Int): List<User> {
-        return RetrofitInstance.api.fetchSyncData(id)
+    suspend fun fetchDataFromApi(id:Int): User {
+        return RetrofitInstance.api.fetchSyncData(id).body()!!
     }
 }

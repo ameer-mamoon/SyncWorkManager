@@ -8,7 +8,11 @@ class MainViewModelProvider(private val repository: Repository) : ViewModelProvi
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
 
-        return MainViewModel(repository) as T
+        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return MainViewModel(repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
 
     }
 

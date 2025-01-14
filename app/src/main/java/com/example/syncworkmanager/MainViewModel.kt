@@ -17,7 +17,7 @@ class MainViewModel(private val repository: Repository) : ViewModel() {
         repository.insert(sync)
     }
 
-    suspend fun fetchDataFromApi(id:Int):List<User> {
+    suspend fun fetchDataFromApi(id:Int):User {
          return repository.fetchDataFromApi(id)
     }
 

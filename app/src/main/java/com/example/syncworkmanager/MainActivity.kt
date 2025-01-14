@@ -1,8 +1,11 @@
 package com.example.syncworkmanager
 
+import AppDatabase
 import MyAdapter
+import android.content.Context
 import android.database.DatabaseUtils
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -11,6 +14,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.Data
 import com.example.syncworkmanager.databinding.ActivityMainBinding
 import com.example.syncworkmanager.db.Sync
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +25,15 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.ZoneOffset
 import kotlin.coroutines.coroutineContext
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import androidx.work.WorkRequest
+import com.example.syncworkmanager.Retrofit.RetrofitInstance
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.util.concurrent.TimeUnit
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -49,6 +62,8 @@ class MainActivity : AppCompatActivity() {
         val adapter = MyAdapter(list!!)
         recyclerView.adapter = adapter
 
+//        val dao = (application as MyApplication).database.syncDao()
+        /*
         val dao = AppDatabase.getDatabase(applicationContext).syncDao()
         val repo = Repository(dao)
         val factory = MainViewModelProvider(repo)
@@ -56,10 +71,11 @@ class MainActivity : AppCompatActivity() {
         val viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
 
         // default
-        viewModel.insert(Sync(id++, getTimeStamp(),null))
+        viewModel.insert(Sync(requestedAt =  getTimeStamp(), updatedAt = null))
 
-        viewModel.allSyncData.observe(this) { syncList ->
-            if(syncList[0].updatedAt == null)
+        viewModel.allSyncData.observe(this) { syncData ->
+            // Looking last row of sync table
+            if(syncData[syncData.size-1].updatedAt == null)
             {
                 // API call
                 CoroutineScope(Dispatchers.IO).launch {
@@ -76,12 +92,70 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        */
+
+//        CoroutineScope(Dispatchers.IO).launch {
+//            val res = RetrofitInstance.api.fetchSyncData(1)
+//            if(res.isSuccessful)
+//            {
+//                Log.d("Result:Testing","Result:"+res.body().toString())
+//            } else
+//            {
+//                Log.d("Result:Testing","Result:"+res.errorBody().toString())
+//            }
+//
+//        }
 
 
-
+        // Work Manager
+        scheduleFetchUserWork(applicationContext,recyclerView,1)
 
     }
 }
+
+fun scheduleFetchUserWork(context: Context,recyclerView: RecyclerView,id:Int) {
+    val inputData = Data.Builder()
+        .putInt("id", id)
+        .build()
+
+    val workRequest: WorkRequest = OneTimeWorkRequestBuilder<BackgroundTask>()
+        .setInitialDelay(10, TimeUnit.SECONDS) // delay of 10 seconds
+        .setInputData(inputData)
+        .build()
+
+    WorkManager.getInstance(context).enqueue(workRequest)
+
+    // Observe the work completion and re-schedule with incremented `id`
+    WorkManager.getInstance(context).getWorkInfoByIdLiveData(workRequest.id).observeForever { workInfo ->
+        if (workInfo != null && workInfo.state == WorkInfo.State.SUCCEEDED) {
+            val outputData = workInfo.outputData
+            val usersJson = outputData.getString("usersJson")
+
+            if (usersJson != null) {
+                // Deserialize JSON back into a list of User objects
+                val userType = object : TypeToken<User>() {}.type
+                val users: List<User> = Gson().fromJson(usersJson, userType)
+
+                // Update the RecyclerView with the fetched user data
+                val adapter = recyclerView.adapter as MyAdapter
+                adapter.updateData(users[0])
+                Log.d("Result: ","List updated")
+
+            val newId = id + 1
+            scheduleFetchUserWork(context,recyclerView,newId) // Schedule the next work with incremented id
+
+        }
+
+
+        }
+
+
+    }
+
+
+
+}
+
 
 fun getTimeStamp(): String {
     val currentTime = ZonedDateTime.now(ZoneOffset.UTC)  // Get current time in UTC
